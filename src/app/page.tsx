@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PipelineBoard } from '@/components/pipeline-board';
 import { LeadCaptureForm } from '@/components/lead-capture-form';
-import { Users, UserPlus, TrendingUp, CalendarDays } from 'lucide-react';
+import { Users, TrendingUp, CalendarDays, Sparkles } from 'lucide-react';
 import { createSupabaseServerClient } from '@/lib/supabase/client';
+import Link from 'next/link';
 
 export default async function DashboardPage() {
   const supabase = createSupabaseServerClient();
@@ -39,95 +39,94 @@ export default async function DashboardPage() {
   }
 
   const leadsByStatus: Record<string, any[]> = {
-    new: [],
-    contacted: [],
-    nurturing: [],
-    qualified: [],
-    scheduled: [],
-    closed_won: [],
-    closed_lost: [],
+    new: [], contacted: [], nurturing: [], qualified: [], scheduled: [], closed_won: [], closed_lost: [],
   };
-
   leads.forEach((lead: any) => {
-    if (leadsByStatus[lead.status]) {
-      leadsByStatus[lead.status].push(lead);
-    }
+    if (leadsByStatus[lead.status]) leadsByStatus[lead.status].push(lead);
   });
 
   const totalLeads = leads.length;
+  const hotLeads = leads.filter((l: any) => l.score >= 60).length;
   const conversionRate = totalLeads > 0
     ? Math.round(((leadsByStatus.closed_won?.length || 0) / totalLeads) * 100)
     : 0;
 
+  const metrics = [
+    { label: 'Total Leads', value: totalLeads, icon: Users, accent: '#c9a84c', sub: `${leadsByStatus.new.length} new` },
+    { label: 'Hot Leads', value: hotLeads, icon: TrendingUp, accent: '#ef4444', sub: 'score ≥ 60' },
+    { label: 'Conversion', value: `${conversionRate}%`, icon: TrendingUp, accent: '#22c55e', sub: `${leadsByStatus.closed_won?.length || 0} closed won` },
+    { label: 'Active Nurture', value: activeEnrollments, icon: Sparkles, accent: '#a855f7', sub: 'in sequences' },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Real Estate Lead Pipeline</h1>
-        <div className="text-sm text-muted-foreground">
-          {totalLeads} total leads
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Pipeline <span className="text-gold-gradient">Overview</span>
+          </h1>
+          <p className="text-sm text-[#5a5e6a] mt-1">
+            Real-time lead flow, scoring, and conversion metrics
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-[#3a3e4a] font-mono">{totalLeads} leads tracked</span>
+          <Link
+            href="/leads/new"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#c9a84c] text-[#07080a] text-sm font-semibold hover:bg-[#dbb85c] transition-colors"
+          >
+            <Users className="w-3.5 h-3.5" />
+            Add Lead
+          </Link>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Leads</CardTitle>
-            <Users className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalLeads}</div>
-            <p className="text-xs text-muted-foreground">{leadsByStatus.new.length} new this week</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Nurture</CardTitle>
-            <UserPlus className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeEnrollments}</div>
-            <p className="text-xs text-muted-foreground">in drip sequences</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Conversion Rate</CardTitle>
-            <TrendingUp className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{conversionRate}%</div>
-            <p className="text-xs text-muted-foreground">{leadsByStatus.closed_won.length} closed won</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming</CardTitle>
-            <CalendarDays className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{upcomingAppointments}</div>
-            <p className="text-xs text-muted-foreground">appointments</p>
-          </CardContent>
-        </Card>
+      {/* Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+        {metrics.map((m) => (
+          <div
+            key={m.label}
+            className="metric-card glass rounded-xl p-5 hover-lift"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#5a5e6a]">
+                {m.label}
+              </span>
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ background: `${m.accent}12`, border: `1px solid ${m.accent}25` }}
+              >
+                <m.icon className="w-4 h-4" style={{ color: m.accent }} />
+              </div>
+            </div>
+            <div className="text-3xl font-bold tracking-tight animate-count">{m.value}</div>
+            <p className="text-[11px] text-[#3a3e4a] mt-1">{m.sub}</p>
+          </div>
+        ))}
       </div>
 
-      <Tabs defaultValue="pipeline" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-          <TabsTrigger value="capture">Lead Capture</TabsTrigger>
-        </TabsList>
+      {/* Pipeline */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Pipeline Board</h2>
+          <Link
+            href="/pipeline"
+            className="text-xs text-[#c9a84c] hover:text-[#dbb85c] transition-colors"
+          >
+            View full pipeline →
+          </Link>
+        </div>
+        <PipelineBoard leadsByStatus={leadsByStatus} />
+      </div>
 
-        <TabsContent value="pipeline" className="space-y-4">
-          <PipelineBoard leadsByStatus={leadsByStatus} />
-        </TabsContent>
-
-        <TabsContent value="capture" className="space-y-4">
-          <LeadCaptureForm />
-        </TabsContent>
-      </Tabs>
+      {/* Quick Capture */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Quick Lead Capture</h2>
+        </div>
+        <LeadCaptureForm />
+      </div>
     </div>
   );
 }

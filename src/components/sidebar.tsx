@@ -8,39 +8,19 @@ import {
   Users,
   GitBranch,
   CalendarDays,
-  PlusCircle,
-  Settings,
+  Sparkles,
   Building2,
+  ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
-  {
-    label: "Dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Leads",
-    href: "/leads",
-    icon: Users,
-  },
-  {
-    label: "Pipeline",
-    href: "/pipeline",
-    icon: GitBranch,
-  },
-  {
-    label: "Nurture",
-    href: "/nurture",
-    icon: PlusCircle,
-  },
-  {
-    label: "Schedule",
-    href: "/schedule",
-    icon: CalendarDays,
-  },
+  { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Leads", href: "/leads", icon: Users },
+  { label: "Pipeline", href: "/pipeline", icon: GitBranch },
+  { label: "Nurture", href: "/nurture", icon: Sparkles },
+  { label: "Schedule", href: "/schedule", icon: CalendarDays },
 ];
 
 export function Sidebar() {
@@ -50,22 +30,22 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed top-0 left-0 h-screen z-40 flex flex-col transition-all duration-300 ease-in-out",
-        "bg-[#0c0c0e] border-r border-border",
-        collapsed ? "w-16" : "w-64"
+        "fixed top-0 left-0 h-screen z-40 flex flex-col transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
+        "bg-[#0a0b0e] border-r border-[#1a1c22]",
+        collapsed ? "w-[68px]" : "w-[240px]"
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-border">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 border border-primary/20">
-          <Building2 className="w-4 h-4 text-primary" />
+      <div className="flex items-center gap-3 h-16 px-4 border-b border-[#1a1c22]">
+        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#c9a84c]/10 border border-[#c9a84c]/20 shrink-0">
+          <Building2 className="w-[18px] h-[18px] text-[#c9a84c]" />
         </div>
         {!collapsed && (
-          <div className="animate-fade-in">
-            <h1 className="text-lg font-bold tracking-tight">
+          <div className="animate-fade-in overflow-hidden">
+            <h1 className="text-[17px] font-bold tracking-tight leading-none">
               Re<span className="text-gold-gradient">Flow</span>
             </h1>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+            <p className="text-[9px] text-[#4a4e5a] uppercase tracking-[0.25em] mt-0.5 font-medium">
               Lead Pipeline
             </p>
           </div>
@@ -73,7 +53,12 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-2 space-y-1">
+      <nav className="flex-1 py-3 px-2.5 space-y-0.5 overflow-y-auto">
+        {!collapsed && (
+          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#3a3e4a] px-2 mb-2">
+            Workspace
+          </p>
+        )}
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -83,24 +68,23 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                "hover:bg-secondary/60 group",
+                "group flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 relative",
                 isActive
-                  ? "bg-primary/10 text-primary border border-primary/20"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-[#c9a84c]/10 text-[#c9a84c] border border-[#c9a84c]/15"
+                  : "text-[#5a5e6a] hover:text-[#a0a4b0] hover:bg-[#14161a]"
               )}
             >
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[#c9a84c] rounded-r-full" />
+              )}
               <item.icon
                 className={cn(
-                  "w-4 h-4 flex-shrink-0 transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                  "w-[16px] h-[16px] shrink-0 transition-colors",
+                  isActive ? "text-[#c9a84c]" : "text-[#3a3e4a] group-hover:text-[#5a5e6a]"
                 )}
               />
               {!collapsed && (
-                <span className="animate-fade-in">{item.label}</span>
-              )}
-              {!collapsed && isActive && (
-                <ChevronRight className="w-3 h-3 ml-auto text-primary/60" />
+                <span className="animate-fade-in truncate">{item.label}</span>
               )}
             </Link>
           );
@@ -108,13 +92,19 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border">
+      <div className="p-2.5 border-t border-[#1a1c22]">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center gap-2 px-3 py-2 w-full rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all text-xs"
+          className="flex items-center justify-center gap-2 px-2.5 py-2 w-full rounded-lg text-[#3a3e4a] hover:text-[#5a5e6a] hover:bg-[#14161a] transition-all"
         >
-          <Settings className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>Collapse</span>}
+          {collapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <>
+              <ChevronLeft className="w-4 h-4" />
+              <span className="text-[11px]">Collapse</span>
+            </>
+          )}
         </button>
       </div>
     </aside>

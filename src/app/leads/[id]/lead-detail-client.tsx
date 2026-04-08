@@ -119,7 +119,7 @@ export function LeadDetailClient({
               {lead.notes && (
                 <>
                   <Separator className="my-4" />
-                  <div className="text-sm text-muted-foreground italic">"{lead.notes}"</div>
+                  <div className="text-sm text-muted-foreground italic">&ldquo;{lead.notes}&rdquo;</div>
                 </>
               )}
             </CardContent>
