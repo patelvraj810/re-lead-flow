@@ -1,15 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import {
-  UserPlus,
-  Mail,
-  Phone,
-  CalendarDays,
-  ArrowRight,
-  MessageSquare,
-  CheckCircle2,
-  XCircle,
+  UserPlus, Mail, Phone, CalendarDays, ArrowRight,
+  MessageSquare, CheckCircle2, XCircle,
 } from 'lucide-react';
 
 interface ActivityItem {
@@ -19,15 +12,15 @@ interface ActivityItem {
   created_at: string;
 }
 
-const EVENT_ICONS: Record<string, React.ReactNode> = {
-  lead_created: <UserPlus className="w-4 h-4 text-blue-500" />,
-  status_changed: <ArrowRight className="w-4 h-4 text-yellow-500" />,
-  nurture_enrolled: <Mail className="w-4 h-4 text-purple-500" />,
-  nurture_sent: <MessageSquare className="w-4 h-4 text-purple-500" />,
-  nurture_completed: <CheckCircle2 className="w-4 h-4 text-green-500" />,
-  appointment_scheduled: <CalendarDays className="w-4 h-4 text-indigo-500" />,
-  appointment_completed: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
-  appointment_cancelled: <XCircle className="w-4 h-4 text-red-500" />,
+const EVENT_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
+  lead_created:        { icon: <UserPlus className="w-3.5 h-3.5" />, color: '#3b82f6', bg: 'bg-blue-500/[0.08]' },
+  status_changed:      { icon: <ArrowRight className="w-3.5 h-3.5" />, color: '#f59e0b', bg: 'bg-amber-500/[0.08]' },
+  nurture_enrolled:   { icon: <Mail className="w-3.5 h-3.5" />, color: '#a855f7', bg: 'bg-purple-500/[0.08]' },
+  nurture_sent:        { icon: <MessageSquare className="w-3.5 h-3.5" />, color: '#a855f7', bg: 'bg-purple-500/[0.08]' },
+  nurture_completed:  { icon: <CheckCircle2 className="w-3.5 h-3.5" />, color: '#22c55e', bg: 'bg-green-500/[0.08]' },
+  appointment_scheduled: { icon: <CalendarDays className="w-3.5 h-3.5" />, color: '#6366f1', bg: 'bg-indigo-500/[0.08]' },
+  appointment_completed: { icon: <CheckCircle2 className="w-3.5 h-3.5" />, color: '#10b981', bg: 'bg-emerald-500/[0.08]' },
+  appointment_cancelled: { icon: <XCircle className="w-3.5 h-3.5" />, color: '#ef4444', bg: 'bg-red-500/[0.08]' },
 };
 
 const EVENT_LABELS: Record<string, string> = {
@@ -59,55 +52,67 @@ function formatEventData(eventType: string, data: any): string {
 export function ActivityTimeline({ activities }: { activities: ActivityItem[] }) {
   if (!activities || activities.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Activity Timeline</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
-        </CardContent>
-      </Card>
+      <div className="glass rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-[#1e2028]">
+          <h3 className="text-[13px] font-semibold text-[#8a8e9a]">Activity Timeline</h3>
+        </div>
+        <div className="p-6 text-center">
+          <div className="text-[12px] text-[#3a3e4a]">No activity recorded yet</div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Activity Timeline</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="glass rounded-xl overflow-hidden">
+      <div className="p-4 border-b border-[#1e2028]">
+        <h3 className="text-[13px] font-semibold text-[#8a8e9a]">Activity Timeline</h3>
+      </div>
+      <div className="p-4">
         <div className="relative">
-          {/* Timeline line */}
-          <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border" />
-
-          <div className="space-y-4">
-            {activities.map((activity) => (
-              <div key={activity.id} className="relative pl-10">
-                {/* Icon dot */}
-                <div className="absolute left-[7px] top-1 flex items-center justify-center w-[18px] h-[18px] rounded-full bg-background border border-border">
-                  {EVENT_ICONS[activity.event_type] || <MessageSquare className="w-3 h-3 text-muted-foreground" />}
-                </div>
-
-                <div className="pb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
-                      {EVENT_LABELS[activity.event_type] || activity.event_type}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(activity.created_at).toLocaleString()}
-                    </span>
+          <div className="absolute left-[11px] top-2 bottom-2 w-px bg-[#1e2028]" />
+          <div className="space-y-5">
+            {activities.map((activity) => {
+              const config = EVENT_CONFIG[activity.event_type] || {
+                icon: <MessageSquare className="w-3.5 h-3.5" />,
+                color: '#6b7280',
+                bg: 'bg-gray-500/[0.08]',
+              };
+              return (
+                <div key={activity.id} className="relative pl-9">
+                  <div
+                    className="absolute left-0 top-0.5 flex items-center justify-center w-[22px] h-[22px] rounded-full border"
+                    style={{
+                      background: `${config.color}12`,
+                      borderColor: `${config.color}30`,
+                      color: config.color,
+                    }}
+                  >
+                    {config.icon}
                   </div>
-                  {formatEventData(activity.event_type, activity.event_data) && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {formatEventData(activity.event_type, activity.event_data)}
-                    </p>
-                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-medium text-[#e0e0e4]">
+                        {EVENT_LABELS[activity.event_type] || activity.event_type}
+                      </span>
+                      <span className="text-[11px] text-[#4a4e5a] font-mono">
+                        {new Date(activity.created_at).toLocaleString('en-US', {
+                          month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    {formatEventData(activity.event_type, activity.event_data) && (
+                      <p className="text-[11px] text-[#5a5e6a] mt-0.5">
+                        {formatEventData(activity.event_type, activity.event_data)}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

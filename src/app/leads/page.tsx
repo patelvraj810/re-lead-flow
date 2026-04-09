@@ -1,19 +1,22 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Plus } from 'lucide-react';
+import { Plus, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { createSupabaseServerClient } from '@/lib/supabase/client';
 
-const STATUS_COLORS: Record<string, string> = {
-  new: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  contacted: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  nurturing: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  qualified: 'bg-green-500/10 text-green-400 border-green-500/20',
-  scheduled: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-  closed_won: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  closed_lost: 'bg-red-500/10 text-red-400 border-red-500/20',
+const STATUS_CONFIG: Record<string, { color: string; dot: string; bg: string; border: string }> = {
+  new:         { color: 'text-blue-400', dot: 'bg-blue-400', bg: 'bg-blue-500/[0.06]', border: 'border-blue-500/20' },
+  contacted:   { color: 'text-amber-400', dot: 'bg-amber-400', bg: 'bg-amber-500/[0.06]', border: 'border-amber-500/20' },
+  nurturing:   { color: 'text-purple-400', dot: 'bg-purple-400', bg: 'bg-purple-500/[0.06]', border: 'border-purple-500/20' },
+  qualified:   { color: 'text-emerald-400', dot: 'bg-emerald-400', bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/20' },
+  scheduled:   { color: 'text-indigo-400', dot: 'bg-indigo-400', bg: 'bg-indigo-500/[0.06]', border: 'border-indigo-500/20' },
+  closed_won:  { color: 'text-green-400', dot: 'bg-green-400', bg: 'bg-green-500/[0.06]', border: 'border-green-500/20' },
+  closed_lost: { color: 'text-red-400', dot: 'bg-red-400', bg: 'bg-red-500/[0.06]', border: 'border-red-500/20' },
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  new: 'New', contacted: 'Contacted', nurturing: 'Nurturing', qualified: 'Qualified',
+  scheduled: 'Scheduled', closed_won: 'Won', closed_lost: 'Lost',
 };
 
 export default async function LeadsPage() {
@@ -21,96 +24,108 @@ export default async function LeadsPage() {
   let leads: any[] = [];
 
   try {
-    const { data } = await supabase
-      .from('leads')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
     leads = Array.isArray(data) ? data : [];
-  } catch {
-    // Gracefully handle missing Supabase connection
-  }
+  } catch {}
 
   const statusCounts: Record<string, number> = {};
-  leads.forEach((lead: any) => {
-    statusCounts[lead.status] = (statusCounts[lead.status] || 0) + 1;
-  });
+  leads.forEach((lead: any) => { statusCounts[lead.status] = (statusCounts[lead.status] || 0) + 1; });
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Lead Management</h1>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Lead <span className="text-gold-gradient">Management</span>
+          </h1>
+          <p className="text-sm text-[#5a5e6a] mt-1">Track, score, and advance leads through the pipeline</p>
+        </div>
         <Link href="/leads/new">
-          <Button size="sm">
-            <Plus className="w-4 h-4 mr-2" />
+          <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#c9a84c] text-[#07080a] text-sm font-semibold hover:bg-[#dbb85c] transition-colors">
+            <Plus className="w-3.5 h-3.5" />
             Add Lead
-          </Button>
+          </button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
-        {Object.entries(STATUS_COLORS).map(([status, color]) => (
-          <div key={status} className={`px-3 py-2 rounded-lg border ${color} text-center`}>
-            <div className="text-xl font-bold">{statusCounts[status] || 0}</div>
-            <div className="text-xs capitalize">{status.replace('_', ' ')}</div>
+      {/* Status counts */}
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 stagger-children">
+        {Object.entries(STATUS_CONFIG).map(([status, cfg]) => (
+          <div key={status} className={`px-3 py-3 rounded-xl border ${cfg.border} ${cfg.bg} text-center hover-lift`}>
+            <div className={`text-2xl font-bold tabular-nums ${cfg.color}`}>{statusCounts[status] || 0}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-[#5a5e6a] mt-0.5">{STATUS_LABELS[status]}</div>
           </div>
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Leads</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Interest</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Score</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Created</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {leads.length > 0 ? (
-                leads.map((lead: any) => (
-                  <TableRow key={lead.id}>
-                    <TableCell>
-                      <Link href={`/leads/${lead.id}`} className="font-medium hover:underline">
+      {/* Lead table */}
+      <div className="glass rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-[#1e2028] flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[#8a8e9a]">All Leads</h2>
+          <span className="text-[11px] text-[#4a4e5a] tabular-nums">{leads.length} total</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[#1e2028]">
+                <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-[#4a4e5a] px-4 py-3">Lead</th>
+                <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-[#4a4e5a] px-4 py-3">Contact</th>
+                <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-[#4a4e5a] px-4 py-3">Interest</th>
+                <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-[#4a4e5a] px-4 py-3">Status</th>
+                <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-[#4a4e5a] px-4 py-3">Score</th>
+                <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-[#4a4e5a] px-4 py-3">Source</th>
+                <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-[#4a4e5a] px-4 py-3">Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leads.length > 0 ? leads.map((lead: any) => {
+                const cfg = STATUS_CONFIG[lead.status] || STATUS_CONFIG.new;
+                const scoreColor = lead.score >= 70 ? '#22c55e' : lead.score >= 40 ? '#f59e0b' : '#6b7280';
+                return (
+                  <tr key={lead.id} className="border-b border-[#1e2028]/50 hover:bg-[#14161a] transition-colors group">
+                    <td className="px-4 py-3">
+                      <Link href={`/leads/${lead.id}`} className="font-medium text-[13px] text-[#e0e0e4] group-hover:text-[#c9a84c] transition-colors">
                         {lead.first_name} {lead.last_name}
                       </Link>
-                    </TableCell>
-                    <TableCell className="text-sm">{lead.email}</TableCell>
-                    <TableCell className="capitalize text-sm">{lead.property_interest || '—'}</TableCell>
-                    <TableCell>
-                      <Badge className={`${STATUS_COLORS[lead.status] || 'bg-gray-100 text-gray-800'} border`}>
-                        {lead.status.replace('_', ' ')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`font-semibold ${lead.score >= 60 ? 'text-yellow-500' : lead.score >= 30 ? 'text-blue-400' : 'text-muted-foreground'}`}>
-                        {lead.score}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-[12px] text-[#8a8e9a]">{lead.email}</div>
+                      {lead.phone && <div className="text-[11px] text-[#4a4e5a]">{lead.phone}</div>}
+                    </td>
+                    <td className="px-4 py-3 text-[12px] text-[#8a8e9a] capitalize">{lead.property_interest || '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium border ${cfg.border} ${cfg.bg} ${cfg.color}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                        {STATUS_LABELS[lead.status]}
                       </span>
-                    </TableCell>
-                    <TableCell className="capitalize text-sm">{lead.source}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(lead.created_at).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No leads yet. Capture your first lead to get started.
-                  </TableCell>
-                </TableRow>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-12 h-1.5 rounded-full bg-[#14161a] overflow-hidden">
+                          <div className="h-full rounded-full animate-score" style={{ width: `${lead.score}%`, background: scoreColor }} />
+                        </div>
+                        <span className="text-[12px] font-bold tabular-nums" style={{ color: scoreColor }}>{lead.score}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-[12px] text-[#5a5e6a] capitalize">{lead.source}</td>
+                    <td className="px-4 py-3 text-[12px] text-[#4a4e5a] font-mono">
+                      {new Date(lead.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </td>
+                  </tr>
+                );
+              }) : (
+                <tr>
+                  <td colSpan={7} className="text-center py-16 text-[#3a3e4a]">
+                    <div className="text-[13px]">No leads yet</div>
+                    <div className="text-[11px] mt-1">Capture your first lead to get started</div>
+                  </td>
+                </tr>
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
